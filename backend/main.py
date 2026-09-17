@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from users.router import router as accounts_router
 from expense.router import router as expense_router
 from category.router import router as category_router
+from dashboard.router import router as dashboard_router
 from fastapi.middleware.cors import CORSMiddleware
 from decouple import config
 
@@ -31,3 +32,4 @@ app.add_middleware(
 app.include_router(accounts_router, prefix="/users", tags=["Users"])
 app.include_router(expense_router, prefix="/expense", tags=["Expense"])
 app.include_router(category_router, prefix="/category", tags=["Category"])
+app.include_router(dashboard_router, prefix="/dashboard", tags=["Dashboard"])

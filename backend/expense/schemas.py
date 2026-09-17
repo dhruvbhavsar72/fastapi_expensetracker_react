@@ -8,5 +8,8 @@ class ExpenseBase(BaseModel):
     amount: float
     date: date
 
+    class Config:
+        from_attributes = True
+
 class ExpenseUpdate(ExpenseBase):
     category_id:int
