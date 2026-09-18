@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { DashboardPage } from "./pages/DashboardPage";
 import { Header } from "./components/Header";
 import { AddCategoryPage } from "./pages/AddCategoryPage";
 import { AddExpensePage } from "./pages/AddExpensePage";
@@ -15,6 +16,7 @@ export default function App() {
         <main className="container mx-auto p-5">
           <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/expenses" element={<ExpensesPage />} />
             <Route path="/add-expense" element={<AddExpensePage />} />
             <Route path="/add-category" element={<AddCategoryPage />} />

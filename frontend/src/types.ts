@@ -37,3 +37,24 @@ export type RegisterForm = {
   password: string
 }
 
+// Dashboard types — matches GET /dashboard response
+export type RecentExpense = {
+  title: string
+  description: string
+  amount: number
+  date: string
+}
+
+export type CategoryAmount = {
+  category_id: number | null
+  category_name: string
+  amount: number
+}
+
+export type DashboardData = {
+  weekly_amount: number
+  monthly_amount: number
+  yearly_amount: number
+  recent_expenses: RecentExpense[]
+  amount_by_category: CategoryAmount[]
+}

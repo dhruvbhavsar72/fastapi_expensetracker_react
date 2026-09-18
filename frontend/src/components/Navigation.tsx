@@ -45,6 +45,9 @@ export function Navigation() {
     >
       {isAuthenticated ? (
         <>
+          <NavLink to="/dashboard" className={linkClass}>
+            Dashboard
+          </NavLink>
           <NavLink to="/expenses" className={linkClass}>
             Expenses
           </NavLink>

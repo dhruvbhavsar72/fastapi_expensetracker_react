@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Category, CategoryForm, Credentials, Expense, ExpenseForm, RegisterForm, User } from './types'
+import type { Category, CategoryForm, Credentials, DashboardData, Expense, ExpenseForm, RegisterForm, User } from './types'
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:8000',
@@ -19,18 +19,9 @@ export const clearAuthSession = () => {
   localStorage.removeItem(AUTH_SESSION_KEY);
 };
 
-export async function loadDashboard(): Promise<{ user: User; expenses: Expense[]; categories: Category[] }> {
-  const [userResponse, expenseResponse, categoryResponse] = await Promise.all([
-    api.get<User>('/users/me'),
-    api.get<Expense[]>('/expense/all_expense'),
-    api.get<Category[]>('/category/all_category'),
-  ])
-
-  return {
-    user: userResponse.data,
-    expenses: expenseResponse.data,
-    categories: categoryResponse.data,
-  }
+export async function loadDashboard(): Promise<DashboardData> {
+  const response = await api.get<DashboardData>('/dashboard')
+  return response.data
 }
 
 export async function login(credentials: Credentials): Promise<User> {
@@ -52,29 +43,31 @@ export async function logout(): Promise<void> {
   await api.post('/users/logout')
 }
 
-export async function deleteExpense(id: number): Promise<void> {
-  await api.delete(`/expense/delete_item/${id}`)
-}
-
+// GET /expense/all_expense — returns all expenses for the current user
 export async function allExpenses(): Promise<Expense[]> {
   const response = await api.get<Expense[]>('/expense/all_expense')
   return response.data
 }
 
-export async function saveExpense(expense: ExpenseForm, id?: number): Promise<void> {
-  const body = {
-    ...expense,
-    amount: Number(expense.amount),
-    category_id: Number(expense.category_id),
-  }
-
-  if (id) {
-    await api.put(`/expense/edit_item/${id}`, body)
-  } else {
-    await api.post('/expense/create_expense', body)
-  }
+// GET /expense/?category_id=&start_date=&end_date=&sort_by=date|amount&sort_order=asc|desc
+export async function filterExpenses(params: {
+  category_id?: number | null
+  start_date?: string | null
+  end_date?: string | null
+  sort_by?: 'date' | 'amount'
+  sort_order?: 'asc' | 'desc'
+}): Promise<Expense[]> {
+  const query = new URLSearchParams()
+  if (params.category_id != null) query.set('category_id', String(params.category_id))
+  if (params.start_date) query.set('start_date', params.start_date)
+  if (params.end_date) query.set('end_date', params.end_date)
+  if (params.sort_by) query.set('sort_by', params.sort_by)
+  if (params.sort_order) query.set('sort_order', params.sort_order)
+  const response = await api.get<Expense[]>(`/expense/?${query.toString()}`)
+  return response.data
 }
 
+// POST /expense/create_expense
 export async function createExpense(expense: ExpenseForm): Promise<void> {
   await api.post('/expense/create_expense', {
     ...expense,
@@ -83,6 +76,7 @@ export async function createExpense(expense: ExpenseForm): Promise<void> {
   })
 }
 
+// PUT /expense/edit_item/{id}
 export async function updateExpense({
   item_id,
   expense,
@@ -96,6 +90,11 @@ export async function updateExpense({
     category_id: Number(expense.category_id),
   })
   return response.data
+}
+
+// DELETE /expense/delete_item/{id}
+export async function deleteExpense(id: number): Promise<void> {
+  await api.delete(`/expense/delete_item/${id}`)
 }
 
 export async function createCategory(category: CategoryForm): Promise<void> {
