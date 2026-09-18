@@ -132,10 +132,6 @@ export function DashboardPage() {
               {[...amountByCategory]
                 .sort((a, b) => b.amount - a.amount)
                 .map((cat) => {
-                  const pct =
-                    monthlyAmount > 0
-                      ? Math.round((cat.amount / monthlyAmount) * 100)
-                      : 0;
                   return (
                     <div key={cat.category_name}>
                       <div className="flex items-center justify-between">
@@ -143,19 +139,10 @@ export function DashboardPage() {
                           {cat.category_name}
                         </p>
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs text-[#849b8e]">
-                            {pct}%
-                          </span>
                           <span className="font-mono text-sm font-bold text-[#8fc29d]">
                             ${cat.amount.toFixed(2)}
                           </span>
                         </div>
-                      </div>
-                      <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[#20382c]">
-                        <div
-                          className="h-full rounded-full bg-[#8fc29d] transition-all duration-700"
-                          style={{ width: `${pct}%` }}
-                        />
                       </div>
                     </div>
                   );
