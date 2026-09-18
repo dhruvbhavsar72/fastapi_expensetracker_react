@@ -1,10 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from datetime import date
+from typing import Literal
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status, Request
 from expense.service import (
     create_expense,
     get_expenses,
     edit_expense,
     delete_expense,
     get_expense_by_category,
+    filter_sorting,
 )
 from expense.schemas import ExpenseUpdate
 from db.config import SessionDep
@@ -13,6 +17,7 @@ from decouple import config
 from utils import get_current_user
 
 router = APIRouter()
+
 
 @router.post("/create_expense")
 async def new_expense(
@@ -24,6 +29,26 @@ async def new_expense(
 @router.get("/all_expense")
 async def all_expense(session: SessionDep, user=Depends(get_current_user)):
     return await get_expenses(session, user.id)
+
+@router.get("/")
+async def sorting_filter(
+    session: SessionDep,
+    category_id: int | None = Query(default=None),
+    start_date: date | None = Query(default=None),
+    end_date: date | None = Query(default=None),
+    sort_by: Literal["date", "amount"] | None = Query(default="date"),
+    sort_order: Literal["asc", "desc"] | None = Query(default="asc"),
+    user=Depends(get_current_user),
+):
+    return await filter_sorting(
+        session=session,
+        user_id=user.id,
+        category_id=category_id,
+        start_date=start_date,
+        end_date=end_date,
+        sort_by=sort_by,
+        sort_order=sort_order,
+    )
 
 @router.get("/expense_by_category/{item_id}")
 async def exp_cat(session: SessionDep, item_id: int, user=Depends(get_current_user)):
@@ -45,6 +70,3 @@ async def delete_item(
     session: SessionDep, item_id: int, user=Depends(get_current_user)
 ):
     return await delete_expense(session, item_id, user.id)
-
-
-
