@@ -60,3 +60,21 @@ class UserResponse(BaseModel):
 class LoginResponse(BaseModel):
     msg: str
     loginUser: UserResponse
+class PasswordUpdate(BaseModel):
+    new_password:str
+
+    @field_validator('new_password')
+    @classmethod
+    def check_password(cls,value):
+        return password_checker(value)
+
+class ForgotPassword(BaseModel):
+    email:EmailStr
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, value: str) -> str:
+        email = value.strip()
+        if not re.fullmatch(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$", email):
+            raise ValueError("Invalid email format")
+        return email.lower()

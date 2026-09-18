@@ -1,7 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status, Request
 from utils import create_tokens, get_current_user, revoke_token, verify_token
-from users.service import create_user, user_login
-from users.schemas import LoginResponse, UserBase, UserLogin
+from users.service import (
+    create_user,
+    forgot_password,
+    send_reset_email,
+    update_password,
+    user_login,
+)
+from users.schemas import (
+    ForgotPassword,
+    LoginResponse,
+    PasswordUpdate,
+    UserBase,
+    UserLogin,
+)
 from db.config import SessionDep
 from fastapi.responses import JSONResponse
 from decouple import config
@@ -89,6 +101,25 @@ async def refresh(session: SessionDep, request: Request):
         max_age=60 * 60 * 24 * 7,
     )
     return response
+
+
+@router.post("/update_password")
+async def change_password(
+    session: SessionDep, pwd: PasswordUpdate, user=Depends(get_current_user)
+):
+    return await update_password(session, user, pwd.new_password)
+
+
+@router.post("/send-password-reset-email")
+async def send_password_reset_email(
+    session: SessionDep, data: ForgotPassword, bg_tasks: BackgroundTasks
+):
+    return await send_reset_email(session, data, bg_tasks)
+
+
+@router.post("/reset-password")
+async def reset_password(session: SessionDep, data: PasswordUpdate, token: str):
+    return await forgot_password(session, token, data.new_password)
 
 
 @router.post("/logout")

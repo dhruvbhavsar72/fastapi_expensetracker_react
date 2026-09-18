@@ -1,4 +1,6 @@
+from email.message import EmailMessage
 import uuid
+import aiosmtplib
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
 from decouple import config
@@ -12,6 +14,12 @@ from fastapi import HTTPException, Request, status
 pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 SECRET_KEY = config("SECRET_KEY")
+
+EMAIL_HOST = config("EMAIL_HOST")
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
+EMAIL_PORT = config("EMAIL_PORT")
+EMAIL_SENDER = config("EMAIL_SENDER")
 
 
 def hash_password(password: str) -> str:
@@ -80,7 +88,8 @@ async def verify_token(session: AsyncSession, token: str):
 
     return None
 
-async def revoke_token(session:AsyncSession,token:str):
+
+async def revoke_token(session: AsyncSession, token: str):
     stmt = select(RefreshTokens).where(RefreshTokens.refresh_token == token)
     result = await session.execute(stmt)
     refresh_token = result.scalar_one_or_none()
@@ -91,7 +100,7 @@ async def revoke_token(session:AsyncSession,token:str):
         await session.commit()
 
 
-async def get_current_user(session:SessionDep,request:Request):
+async def get_current_user(session: SessionDep, request: Request):
     tkn = request.cookies.get("access_token")
     if tkn is None:
         raise HTTPException(
@@ -138,3 +147,37 @@ async def get_current_user(session:SessionDep,request:Request):
         )
 
     return user
+
+
+def create_reset_password_token(user_id: int):
+    expire = datetime.now(timezone.utc) + timedelta(minutes=120)
+    to_encode = {"sub": str(user_id), "type": "reset_password", "exp": expire}
+    encode_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm="HS256")
+    return encode_jwt
+
+def verify_email_token(token:str,token_type:str):
+    payload = decode_token(token)
+    if not payload or payload.get("type") != token_type:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token type")
+
+    return int(payload.get("sub"))
+
+async def send_mail(
+    subject: str, recepients: list[str], body: str, sender: str = EMAIL_SENDER
+):
+    msg = EmailMessage()
+    msg["From"] = sender
+    msg["To"] = ", ".join(recepients)
+    msg["Subject"] = subject
+    msg.set_content(body)
+
+    try:
+        await aiosmtplib.send(
+            msg,
+            hostname=EMAIL_HOST,
+            username=EMAIL_HOST_USER,
+            password=EMAIL_HOST_PASSWORD,
+            port=EMAIL_PORT,
+        )
+    except Exception as e:
+        print(f"failed to email send {recepients}: {e}")
