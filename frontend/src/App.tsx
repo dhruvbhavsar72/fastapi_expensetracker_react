@@ -6,6 +6,7 @@ import { AddExpensePage } from "./pages/AddExpensePage";
 import { ExpensesPage } from "./pages/ExpensesPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
+import { UpdatePasswordPage } from "./pages/UpdatePasswordPage";
 import { LandingPage } from "./pages/LandingPage";
 
 export default function App() {
@@ -22,6 +23,7 @@ export default function App() {
             <Route path="/add-category" element={<AddCategoryPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/update-password" element={<UpdatePasswordPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>

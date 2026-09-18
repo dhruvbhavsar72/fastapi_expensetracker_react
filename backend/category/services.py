@@ -32,29 +32,39 @@ async def create_category(session: AsyncSession, category: CategoryBase, user_id
 async def edit_category(
     session: AsyncSession, cate_id: int, cat: CategoryBase, user_id: int
 ):
-    stmt = await session.get(Category, cate_id)
-    if stmt is None:
+    stmt = select(Category).where(
+        Category.id == cate_id,
+        Category.user_id == user_id,
+    )
+    res = await session.execute(stmt)
+    result = res.scalar_one_or_none()
+    if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Note not found",
+            detail="Category not found",
         )
 
-    stmt.category_name = cat.category_name
+    result.category_name = cat.category_name
 
     await session.commit()
-    await session.refresh(stmt)
+    await session.refresh(result)
 
-    return stmt
+    return result
 
 
 async def delete_category(session: AsyncSession, cate_id: int, user_id: int):
-    stmt = await session.get(Category, cate_id)
-    if not stmt:
+    stmt = select(Category).where(
+        Category.id == cate_id,
+        Category.user_id == user_id,
+    )
+    res = await session.execute(stmt)
+    result = res.scalar_one_or_none()
+    if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Note not found",
+            detail="Category not found",
         )
-    await session.delete(stmt)
+    await session.delete(result)
     await session.commit()
 
 async def get_categories(session:AsyncSession,user_id:int):

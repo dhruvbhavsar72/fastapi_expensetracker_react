@@ -58,7 +58,7 @@ async def user_login(session: AsyncSession, user: UserLogin):
 
     if not loginuser:
         raise HTTPException(
-            status_code=status.HTTP_404_BAD_REQUEST, detail="Useer Not Found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User Not Found"
         )
 
     if not verify_password(user.password, loginuser.password):

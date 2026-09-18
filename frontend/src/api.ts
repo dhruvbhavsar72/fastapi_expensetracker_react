@@ -43,6 +43,11 @@ export async function logout(): Promise<void> {
   await api.post('/users/logout')
 }
 
+// POST /users/update_password — updates the authenticated user's password
+export async function updatePassword(new_password: string): Promise<void> {
+  await api.post('/users/update_password', { new_password })
+}
+
 // GET /expense/all_expense — returns all expenses for the current user
 export async function allExpenses(): Promise<Expense[]> {
   const response = await api.get<Expense[]>('/expense/all_expense')

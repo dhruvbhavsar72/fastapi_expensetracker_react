@@ -66,13 +66,18 @@ async def edit_expense(
 
 
 async def delete_expense(session: AsyncSession, expense_id: int, user_id: int):
-    stmt = await session.get(Expense, expense_id)
-    if not stmt:
+    stmt = select(Expense).where(
+        Expense.id == expense_id,
+        Expense.user_id == user_id,
+    )
+    res = await session.execute(stmt)
+    result = res.scalar_one_or_none()
+    if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Note not found",
+            detail="Expense not found",
         )
-    await session.delete(stmt)
+    await session.delete(result)
     await session.commit()
 
 
